@@ -6,13 +6,17 @@ import Notification from './components/Notification/Notification';
 import Options from './components/Options/Options';
 
 export default function App() {
-  const [feedback, setFeedback] = useState({ good: 0, neutral: 0, bad: 0 });
+ const initialState = JSON.parse(localStorage.getItem("feedback")) || { good: 0, neutral: 0, bad: 0 };
+  const [feedback, setFeedback] = useState(initialState);
+
+  useEffect(() => {
+    window.localStorage.setItem("feedback", JSON.stringify(feedback));
+  }, [feedback]);
 
   const updateFeedback = feedbackType => {
-    setFeedback(prevState => ({
-      ...prevState,
-      [feedbackType]:
-        prevState[feedbackType] + 1,
+    setFeedback(prevFeedback => ({
+      ...prevFeedback,
+      [feedbackType]: prevFeedback[feedbackType] + 1,
     }));
   };
 
@@ -21,23 +25,12 @@ export default function App() {
   };
 
   const totalFeedback = feedback.good + feedback.neutral + feedback.bad;
-  const positiveFeedbackPercentage = totalFeedback ?
-    Math.round((feedback.good / totalFeedback) * 100) : 0;
-  
-  useEffect(() => {
-    const savedFeedback = localStorage.getItem('feedback');
-    if (savedFeedback) {
-      setFeedback(JSON.parse(savedFeedback));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('feedback', JSON.stringify(feedback));
-  }, [feedback]);
+  const positiveFeedbackPercentage = totalFeedback > 0
+    ? Math.round((feedback.good / totalFeedback) * 100)
+    : 0;
 
   return (
     <div>
-      <h1>Sip Happens Café</h1>
       <Description />
       <Options
         updateFeedback={updateFeedback}
